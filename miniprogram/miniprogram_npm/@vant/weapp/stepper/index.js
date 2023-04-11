@@ -29,7 +29,6 @@ function equal(value1, value2) {
     props: {
         value: {
             type: null,
-            observer: 'observeValue',
         },
         integer: {
             type: Boolean,
@@ -79,6 +78,11 @@ function equal(value1, value2) {
     data: {
         currentValue: '',
     },
+    watch: {
+        value: function () {
+            this.observeValue();
+        },
+    },
     created: function () {
         this.setData({
             currentValue: this.format(this.data.value),
@@ -86,10 +90,8 @@ function equal(value1, value2) {
     },
     methods: {
         observeValue: function () {
-            var _a = this.data, value = _a.value, currentValue = _a.currentValue;
-            if (!equal(value, currentValue)) {
-                this.setData({ currentValue: this.format(value) });
-            }
+            var value = this.data.value;
+            this.setData({ currentValue: this.format(value) });
         },
         check: function () {
             var val = this.format(this.data.currentValue);
@@ -109,6 +111,7 @@ function equal(value1, value2) {
         },
         onBlur: function (event) {
             var value = this.format(event.detail.value);
+            this.setData({ currentValue: value });
             this.emitChange(value);
             this.$emit('blur', __assign(__assign({}, event.detail), { value: value }));
         },
