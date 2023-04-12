@@ -5,4 +5,19 @@ import './utils/utils'
 import './utils/http'
 App({
   globalData: {},
+  onLaunch() {
+    // 打开页面时获取 token
+    this.getToken()
+  },
+  getToken() {
+    wx.getStorage({
+      key: 'token',
+      success: ({ data }) => {
+        this.token = data
+      },
+      complete: () => {
+        console.log('complete')
+      },
+    })
+  },
 })
