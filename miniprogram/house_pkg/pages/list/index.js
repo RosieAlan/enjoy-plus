@@ -2,7 +2,10 @@ Page({
   data: {
     dialogVisible: false,
   },
-
+  onLoad() {
+    // 目前该段代码只用于测试登录
+    wx.http.get('/room')
+  },
   swipeClose(ev) {
     const { position, instance } = ev.detail
 

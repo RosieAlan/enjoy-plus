@@ -69,9 +69,7 @@ Page({
     const res = await wx.http.post('/login', { mobile, code })
     // 校验数据是否合法
     if (res.code !== 10000) return wx.utils.toast('请检查验证码是否正确!')
-    // 拼凑完整 token
-    // 存储记录token
-    app.setToken(res.data.token)
+    app.setToken(res.data.token, res.data.refreshToken)
     wx.redirectTo({
       url: this.data.redirectURL,
     })
