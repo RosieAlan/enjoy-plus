@@ -7,51 +7,44 @@ http.baseURL = 'https://live-api.itheima.net'
 /**
  * 配置响应拦截器
  */
-http.intercept.response = async ({ statusCode, data, config }) => {
-  // statusCode 为状态码
+// 添加响应拦截器：返回服务器的数据
+http.intercept.response = async ({ data, statusCode, config }) => {
+  // 判断状态码是否为 401
   if (statusCode === 401) {
-    // config 是调用接口的参数
-    // refreshToken 过期的情形
+    // 由于返回的是 401 也有可能是 refreshToken 过期：判断请求的路径是否包含 refreshToken
     if (config.url.includes('/refreshToken')) {
-      // 读取当前历史栈
-      const pageStack = getCurrentPages()
-      // 取出当前页面路径，登录成功能跳转到该页面
-      const lastPage = pageStack[pageStack.length - 1]
-      // 取出当前页面路径，登录成功能跳转到该页面
-      const redirectURL = lastPage.route
-
-      // 引导用户到登录页面
-      return wx.redirectTo({
-        url: `/pages/login/index?redirectURL=/${redirectURL}`,
+      const pagesStack = getCurrentPages()
+      const lastPage = pagesStack[pagesStack.length - 1]
+      const route = lastPage.route
+      // 跳转到登录页面
+      wx.redirectTo({
+        url: `/pages/login/index?redirectURL=${route}`,
       })
+      return
     }
-
-    // 获取全局应用实例
-    const app = getApp()
-    // 使用 refreshToken 更新 token
-    const res = await http({
+    // 判断：是否存在 refreshToken
+    if (!getApp().refresh_token) return Promise.reject(new Error('未登录'))
+    // token 过期，需要请求延时的接口
+    const { data } = await http({
       url: '/refreshToken',
       method: 'POST',
       header: {
-        // 这时要注意使用的是 refresh_token
-        Authorization: app.refresh_token,
+        Authorization: getApp().refresh_token,
       },
     })
-
-    // 更新 token 和 refresh_token
-    app.setToken(res.data.token, res.data.refreshToken)
-    // 重新发起请求
-    return http(
+    const { token, refresh_token } = data
+    // 保存 token 和 refreshToken
+    getApp().setToken(token, refresh_token)
+    // 重新请求之前未完成的请求（请求信息：response.config）
+    const res = await http(
       Object.assign(config, {
-        // 传递新的 token
         header: {
-          Authorization: app.token,
+          Authorization: 'Bearer ' + token,
         },
       })
     )
+    return res
   }
-
-  // 过滤接口返回的数据
   return data
 }
 /**

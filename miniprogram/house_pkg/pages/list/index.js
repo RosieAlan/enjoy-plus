@@ -2,9 +2,14 @@ Page({
   data: {
     dialogVisible: false,
   },
-  onLoad() {
+  async onLoad() {
     // 目前该段代码只用于测试登录
-    wx.http.get('/room')
+    try {
+      // 请求一个需要 token 的路径
+      await wx.http.get('/room')
+    } catch (err) {
+      wx.utils.toast(err.message)
+    }
   },
   swipeClose(ev) {
     const { position, instance } = ev.detail
